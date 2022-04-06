@@ -1,0 +1,28 @@
+az aks show --resource-group <Resource Group> --name <aks name> --query nodeResourceGroup -o tsv
+
+az network public-ip create --resource-group <MC_Prakhar-RG_prakharaks_eastus2> --name myAKSPublicIPForIngress --sku Standard --allocation-method static --query publicIp.ipAddress -o tsv
+#it will give the Ip store that ip 20.98.200.154
+
+# Create a namespace for your ingress resources
+kubectl create namespace ingress-basic
+
+# Add the official stable repository
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
+
+# Use Helm to deploy an NGINX ingress controller
+helm install ingress-nginx ingress-nginx/ingress-nginx \
+    --namespace ingress-basic \
+    --set controller.replicaCount=2 \
+    --set controller.nodeSelector."beta\.kubernetes\.io/os"=linux \
+    --set defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux \
+    --set controller.service.externalTrafficPolicy=Local \
+    --set controller.service.loadBalancerIP="20.98.200.154"
+
+
+
+Ref:
+https://github.com/007-PRAKHAR/azure-aks-kubernetes-masterclass/tree/master/09-Ingress-Basic
+
+
+

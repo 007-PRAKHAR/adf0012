@@ -1,0 +1,9 @@
+{
+	"name": "DevADF0012",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "75057a6a-c115-47e8-a857-f27cc5681c85",
+		"tenantId": "e4e34038-ea1f-4882-b6e8-ccd776459ca0"
+	}
+}

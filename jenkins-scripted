@@ -1,0 +1,53 @@
+node {
+    // Define environment variables
+    def REPO_LOCAL_PATH = "${WORKSPACE}/sampleadf"
+    def PACKAGE_JSON_FOLDER = "ci-cd/packages"
+    def ARM_TEMPLATE_FOLDER = "${REPO_LOCAL_PATH}/ArmTemplate"
+    def RESOURCE_GROUP_NAME = "Prakhar-RG"
+    def FACTORY_NAME = "ADF001"
+    def SUBSCRIPTION_ID = "123-456-789"
+
+    // Stage: Prepare Environment
+    stage('Prepare Environment') {
+        // Check if Node.js and npm are installed
+        if (sh(script: 'node --version', returnStatus: true) != 0) {
+            error "Node.js is not installed"
+        }
+        if (sh(script: 'npm --version', returnStatus: true) != 0) {
+            error "npm is not installed"
+        }
+        echo 'Environment prepared.'
+    }
+
+    // Stage: Install Dependencies
+    stage('Install Dependencies') {
+        dir(PACKAGE_JSON_FOLDER) {
+            sh 'npm install --verbose'
+        }
+    }
+
+    // Stage: Validate Data Factory Resources
+    stage('Validate Data Factory Resources') {
+        dir(PACKAGE_JSON_FOLDER) {
+            sh "npm run build validate ${REPO_LOCAL_PATH}/ /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP_NAME}/providers/Microsoft.DataFactory/factories/${FACTORY_NAME}"
+        }
+    }
+
+    // Stage: Generate ARM Template
+    stage('Generate ARM Template') {
+        dir(PACKAGE_JSON_FOLDER) {
+            // Uncomment the next line if you want to use the preview feature
+            // sh "npm run build-preview export ${REPO_LOCAL_PATH} /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP_NAME}/providers/Microsoft.DataFactory/factories/${FACTORY_NAME} \"ArmTemplate\""
+            sh "npm run build export ${REPO_LOCAL_PATH}/ /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP_NAME}/providers/Microsoft.DataFactory/factories/${FACTORY_NAME} \"ArmTemplate\""
+        }
+    }
+
+    // Stage: Publish ARM Template
+    stage('Publish ARM Template') {
+        archiveArtifacts artifacts: "${ARM_TEMPLATE_FOLDER}/**", onlyIfSuccessful: true
+    }
+
+    // Post Build
+    cleanWs()
+    echo 'Cleaning up...'
+}
